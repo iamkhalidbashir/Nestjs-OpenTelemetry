@@ -45,7 +45,7 @@ export const OpenTelemetryModuleDefaultConfig = {
   ],
   contextManager: new AsyncLocalStorageContextManager(),
   resource: new Resource({
-    lib: '@metinseylan/nestjs-opentelemetry',
+    lib: '@precise/nestjs-opentelemetry',
   }),
   instrumentations: [getNodeAutoInstrumentations()],
   spanProcessor: new NoopSpanProcessor(),
