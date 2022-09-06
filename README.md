@@ -178,6 +178,7 @@ import { Module } from '@nestjs/common';
 import {
   OpenTelemetryModule,
   ControllerInjector,
+  ResolverInjector,
   EventEmitterInjector,
   GuardInjector,
   LoggerInjector,
@@ -192,6 +193,7 @@ import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
     OpenTelemetryModule.forRoot({
       traceAutoInjectors: [
         ControllerInjector,
+        ResolverInjector,
         GuardInjector,
         EventEmitterInjector,
         ScheduleInjector,
@@ -213,6 +215,7 @@ export class AppModule {}
 | Instance               | Description                                                         |
 |------------------------|---------------------------------------------------------------------|
 | `ControllerInjector`   | Auto trace all of module controllers                                |
+| `ResolverInjector`     | Auto trace all of module resolvers                                  |
 | `GuardInjector`        | Auto trace all of module guards including global guards             |
 | `PipeInjector`         | Auto trace all of module pipes including global pipes               |
 | `EventEmitterInjector` | Auto trace for [@nestjs/event-emitter](https://docs.nestjs.com/techniques/events) library, supports all features |

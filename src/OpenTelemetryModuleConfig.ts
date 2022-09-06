@@ -2,6 +2,7 @@ import { Provider } from '@nestjs/common/interfaces/modules/provider.interface';
 import { Injector } from './Trace/Injectors/Injector';
 import { NodeSDKConfiguration } from '@opentelemetry/sdk-node';
 import { ControllerInjector } from './Trace/Injectors/ControllerInjector';
+import { ResolverInjector } from './Trace/Injectors/ResolverInjector';
 import { GuardInjector } from './Trace/Injectors/GuardInjector';
 import { EventEmitterInjector } from './Trace/Injectors/EventEmitterInjector';
 import { ScheduleInjector } from './Trace/Injectors/ScheduleInjector';
@@ -29,6 +30,7 @@ export const OpenTelemetryModuleDefaultConfig = {
   serviceName: 'UNKNOWN',
   traceAutoInjectors: [
     ControllerInjector,
+    ResolverInjector,
     GuardInjector,
     EventEmitterInjector,
     ScheduleInjector,

@@ -7,6 +7,7 @@ export * from './OpenTelemetryModuleConfig';
 export * from './Trace/Decorators/Span';
 export * from './Trace/TraceService';
 export * from './Trace/Injectors/ControllerInjector';
+export * from './Trace/Injectors/ResolverInjector';
 export * from './Trace/Injectors/EventEmitterInjector';
 export * from './Trace/Injectors/GuardInjector';
 export * from './Trace/Injectors/LoggerInjector';
