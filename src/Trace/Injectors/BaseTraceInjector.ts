@@ -59,20 +59,34 @@ export class BaseTraceInjector {
     }
   }
 
-  protected wrap(prototype: Record<any, any>, traceName, attributes = {}) {
+  protected wrap(
+    prototype: Record<any, any>,
+    traceName: string,
+    attributes = {},
+    methods?: {
+      preCall?: (span: Span, args: any[]) => void;
+      postCall?: (span: Span, args: any[], result: any) => void;
+    },
+  ) {
     const method = {
       [prototype.name]: function (...args: any[]) {
-        const tracer = trace.getTracer('default');
+        const tracer = trace.getTracer(`default`);
         const currentSpan = tracer.startSpan(traceName);
 
         return context.with(
           trace.setSpan(context.active(), currentSpan),
           () => {
+            if (methods?.preCall) methods.preCall(currentSpan, args);
             currentSpan.setAttributes(attributes);
-            if (prototype.constructor.name === 'AsyncFunction') {
+            if (prototype.constructor.name === `AsyncFunction`) {
               return prototype
                 .apply(this, args)
-                .catch((error) =>
+                .then((result: any) => {
+                  if (methods?.postCall)
+                    methods.postCall(currentSpan, args, result);
+                  return result;
+                })
+                .catch((error: any) =>
                   BaseTraceInjector.recordException(error, currentSpan),
                 )
                 .finally(() => {
@@ -81,6 +95,8 @@ export class BaseTraceInjector {
             } else {
               try {
                 const result = prototype.apply(this, args);
+                if (methods?.postCall)
+                  methods.postCall(currentSpan, args, result);
                 currentSpan.end();
                 return result;
               } catch (error) {

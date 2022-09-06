@@ -43,6 +43,9 @@ let ResolverInjector = class ResolverInjector extends BaseTraceInjector_1.BaseTr
                     const method = this.wrap(resolver.metatype.prototype[key], traceName, {
                         resolver: resolver.name,
                         method: resolver.metatype.prototype[key].name,
+                    }, {
+                        preCall: (span, args) => span.setAttribute(`method.args`, JSON.stringify(args)),
+                        postCall: (span, _, result) => span.setAttribute(`method.result`, JSON.stringify(result)),
                     });
                     this.reDecorate(resolver.metatype.prototype[key], method);
                     resolver.metatype.prototype[key] = method;

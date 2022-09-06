@@ -46,6 +46,12 @@ export class ResolverInjector extends BaseTraceInjector implements Injector {
               resolver: resolver.name,
               method: resolver.metatype.prototype[key].name,
             },
+            {
+              preCall: (span, args) =>
+                span.setAttribute(`method.args`, JSON.stringify(args)),
+              postCall: (span, _, result) =>
+                span.setAttribute(`method.result`, JSON.stringify(result)),
+            },
           );
           this.reDecorate(resolver.metatype.prototype[key], method);
           resolver.metatype.prototype[key] = method;
