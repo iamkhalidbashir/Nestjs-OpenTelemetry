@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ResolverInjector = void 0;
 const common_1 = require("@nestjs/common");
 const core_1 = require("@nestjs/core");
-const graphql_constants_1 = require("@nestjs/graphql/dist/graphql.constants");
 const BaseTraceInjector_1 = require("./BaseTraceInjector");
 let ResolverInjector = class ResolverInjector extends BaseTraceInjector_1.BaseTraceInjector {
     modulesContainer;
@@ -20,17 +19,6 @@ let ResolverInjector = class ResolverInjector extends BaseTraceInjector_1.BaseTr
     constructor(modulesContainer) {
         super(modulesContainer);
         this.modulesContainer = modulesContainer;
-    }
-    *getResolvers() {
-        for (const module of this.modulesContainer.values()) {
-            for (const provider of module.providers.values()) {
-                if (provider &&
-                    provider.metatype?.prototype &&
-                    Reflect.hasMetadata(graphql_constants_1.RESOLVER_TYPE_METADATA, provider.metatype)) {
-                    yield provider;
-                }
-            }
-        }
     }
     inject() {
         const resolvers = this.getResolvers();
@@ -43,10 +31,7 @@ let ResolverInjector = class ResolverInjector extends BaseTraceInjector_1.BaseTr
                     const method = this.wrap(resolver.metatype.prototype[key], traceName, {
                         resolver: resolver.name,
                         method: resolver.metatype.prototype[key].name,
-                    }, {
-                        preCall: (span, args) => span.setAttribute(`method.args`, JSON.stringify(args)),
-                        postCall: (span, _, result) => span.setAttribute(`method.result`, JSON.stringify(result)),
-                    });
+                    }, this.methodWrappers());
                     this.reDecorate(resolver.metatype.prototype[key], method);
                     resolver.metatype.prototype[key] = method;
                     this.loggerService.log(`Mapped ${resolver.name}.${key}`, this.constructor.name);

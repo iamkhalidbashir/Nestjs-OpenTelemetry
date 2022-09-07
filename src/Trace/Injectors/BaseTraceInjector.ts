@@ -2,8 +2,9 @@ import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { context, Span, SpanStatusCode, trace } from '@opentelemetry/api';
 import { Constants } from '../../Constants';
 import { MetadataScanner, ModulesContainer } from '@nestjs/core';
-import { Controller, Injectable } from '@nestjs/common/interfaces';
+import { Controller, Injectable, Provider } from '@nestjs/common/interfaces';
 import { PATH_METADATA } from '@nestjs/common/constants';
+import { RESOLVER_TYPE_METADATA } from '@nestjs/graphql';
 
 export class BaseTraceInjector {
   protected readonly metadataScanner: MetadataScanner = new MetadataScanner();
@@ -19,6 +20,20 @@ export class BaseTraceInjector {
           controller.name !== 'HealthController'
         ) {
           yield controller as InstanceWrapper<Controller>;
+        }
+      }
+    }
+  }
+
+  protected *getResolvers(): Generator<InstanceWrapper<Provider>> {
+    for (const module of this.modulesContainer.values()) {
+      for (const provider of module.providers.values()) {
+        if (
+          provider &&
+          provider.metatype?.prototype &&
+          Reflect.hasMetadata(RESOLVER_TYPE_METADATA, provider.metatype)
+        ) {
+          yield provider as InstanceWrapper<Provider>;
         }
       }
     }
@@ -57,6 +72,41 @@ export class BaseTraceInjector {
       const meta = Reflect.getMetadata(key, source);
       Reflect.defineMetadata(key, meta, destination);
     }
+  }
+
+  protected methodWrappers() {
+    const safeForStringify = (value: any, safeDepth = 1) => {
+      if (Array.isArray(value) && safeDepth > 0)
+        return value.map((v) => safeForStringify(v, safeDepth - 1));
+      if (typeof value === 'object' && safeDepth > 0)
+        return Object.entries(value).reduce(
+          (acc, [key, value]) => ({
+            ...acc,
+            [key]: safeForStringify(value, safeDepth - 1),
+          }),
+          {},
+        );
+
+      try {
+        JSON.stringify(value);
+        return value;
+      } catch (error) {
+        return `Otel Parse Error: ${error.message}`;
+      }
+    };
+
+    return {
+      preCall: (span, args) =>
+        span.setAttribute(
+          `method.args`,
+          JSON.stringify(safeForStringify(args)),
+        ),
+      postCall: (span, _, result) =>
+        span.setAttribute(
+          `method.result`,
+          JSON.stringify(safeForStringify(result)),
+        ),
+    };
   }
 
   protected wrap(

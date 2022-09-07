@@ -1,7 +1,5 @@
-import { Injectable, Logger, Provider } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ModulesContainer } from '@nestjs/core';
-import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
-import { RESOLVER_TYPE_METADATA } from '@nestjs/graphql/dist/graphql.constants';
 import { BaseTraceInjector } from './BaseTraceInjector';
 import { Injector } from './Injector';
 
@@ -11,20 +9,6 @@ export class ResolverInjector extends BaseTraceInjector implements Injector {
 
   constructor(protected readonly modulesContainer: ModulesContainer) {
     super(modulesContainer);
-  }
-
-  protected *getResolvers(): Generator<InstanceWrapper<Provider>> {
-    for (const module of this.modulesContainer.values()) {
-      for (const provider of module.providers.values()) {
-        if (
-          provider &&
-          provider.metatype?.prototype &&
-          Reflect.hasMetadata(RESOLVER_TYPE_METADATA, provider.metatype)
-        ) {
-          yield provider as InstanceWrapper<Provider>;
-        }
-      }
-    }
   }
 
   public inject() {
@@ -46,12 +30,7 @@ export class ResolverInjector extends BaseTraceInjector implements Injector {
               resolver: resolver.name,
               method: resolver.metatype.prototype[key].name,
             },
-            {
-              preCall: (span, args) =>
-                span.setAttribute(`method.args`, JSON.stringify(args)),
-              postCall: (span, _, result) =>
-                span.setAttribute(`method.result`, JSON.stringify(result)),
-            },
+            this.methodWrappers(),
           );
           this.reDecorate(resolver.metatype.prototype[key], method);
           resolver.metatype.prototype[key] = method;

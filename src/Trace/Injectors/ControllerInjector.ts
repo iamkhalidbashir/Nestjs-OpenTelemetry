@@ -33,12 +33,7 @@ export class ControllerInjector extends BaseTraceInjector implements Injector {
               controller: controller.name,
               method: controller.metatype.prototype[key].name,
             },
-            {
-              preCall: (span, args) =>
-                span.setAttribute(`method.args`, JSON.stringify(args)),
-              postCall: (span, _, result) =>
-                span.setAttribute(`method.result`, JSON.stringify(result)),
-            },
+            this.methodWrappers(),
           );
           this.reDecorate(controller.metatype.prototype[key], method);
 
