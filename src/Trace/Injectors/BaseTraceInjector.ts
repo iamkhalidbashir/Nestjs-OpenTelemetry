@@ -76,18 +76,18 @@ export class BaseTraceInjector {
 
   protected methodWrappers() {
     const safeForStringify = (value: any, safeDepth = 1) => {
-      if (Array.isArray(value) && safeDepth > 0)
-        return value.map((v) => safeForStringify(v, safeDepth - 1));
-      if (typeof value === 'object' && safeDepth > 0)
-        return Object.entries(value).reduce(
-          (acc, [key, value]) => ({
-            ...acc,
-            [key]: safeForStringify(value, safeDepth - 1),
-          }),
-          {},
-        );
-
       try {
+        if (value === null) return value;
+        if (Array.isArray(value) && safeDepth > 0)
+          return value.map((v) => safeForStringify(v, safeDepth - 1));
+        if (typeof value === 'object' && safeDepth > 0)
+          return Object.entries(value).reduce(
+            (acc, [key, value]) => ({
+              ...acc,
+              [key]: safeForStringify(value, safeDepth - 1),
+            }),
+            {},
+          );
         JSON.stringify(value);
         return value;
       } catch (error) {
