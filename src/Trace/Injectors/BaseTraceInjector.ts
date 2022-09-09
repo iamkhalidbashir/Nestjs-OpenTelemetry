@@ -31,7 +31,10 @@ export class BaseTraceInjector {
         if (
           provider &&
           provider.metatype?.prototype &&
-          Reflect.hasMetadata(RESOLVER_TYPE_METADATA, provider.metatype)
+          Reflect.hasMetadata(
+            RESOLVER_TYPE_METADATA ?? `graphql:resolver_type`,
+            provider.metatype,
+          )
         ) {
           yield provider as InstanceWrapper<Provider>;
         }
