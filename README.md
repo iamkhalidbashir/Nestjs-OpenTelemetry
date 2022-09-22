@@ -295,7 +295,7 @@ In advanced usage cases, you need to access the native OpenTelemetry Metric prov
 
 ```ts
 import { Injectable } from '@nestjs/common';
-import { Meter } from '@opentelemetry/sdk-metrics-base';
+import { Meter } from '@opentelemetry/sdk-metrics';
 import { Counter } from '@opentelemetry/api-metrics';
 
 @Injectable()
